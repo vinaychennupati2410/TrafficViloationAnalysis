@@ -1,0 +1,155 @@
+1) CREATE TABLE QUERY:
+
+Create table if not exists TrafficViolation
+(Date_Of_Stop STRING,Time_of_Stop STRING,Agency STRING,SubAgency STRING,Description STRING,loca STRING,Lattitude double,Longitude double,accident STRING,Belts STRING,Personal_Injury STRING,Property_Damage STRING,Fatal STRING,Commercial_License STRING,HAZMAT STRING,Commercial_Vehicle STRING,Alchol STRING,Workzone STRING,State STRING,Vehicle_Type STRING,Man_Year STRING,Vehicle_Name STRING,Model STRING,Color STRING,Violation STRING,Charge STRING,Article STRING,Contribution STRING,Race STRING,Gender STRING,Driver_city STRING,Driver_State STRING,DL_State STRING,Arrest_Type STRING,Geo_location STRING
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+TBLPROPERTIES("skip.header.line.count"="1");
+
+2) LOAD DATA INTO QUERY:
+
+LOAD DATA INPATH '\HdiSamples\Traffic_Violations.txt' OVERWRITE INTO TABLE TrafficViolation;
+
+3)SELECT STATE QUERY:
+
+Select DL_State,COUNT(DL_State) AS NO_OF_INCIDENTS_OCCURED FROM TrafficViolation
+GROUP BY DL_State ORDER BY NO_OF_INCIDENTS_OCCURED DESC LIMIT 20;
+
+4)SELECT DRIVER_CITY QUERY:
+
+Select Driver_city,COUNT(Driver_city) AS NO_OF_INCIDENTS_OCCURED FROM TrafficViolation
+GROUP BY Driver_city ORDER BY NO_OF_INCIDENTS_OCCURED DESC LIMIT 20;
+
+5)GENDER QUERY:
+
+Select Gender,COUNT(Gender) AS NO_OF_INCIDENTS_OCCURED FROM TrafficViolation
+GROUP BY Gender ORDER BY NO_OF_INCIDENTS_OCCURED DESC LIMIT 20;
+
+6)QUERY FOR ARREST TYPE:
+
+Select Arrest_Type,COUNT(Arrest_Type) AS NO_OF_INCIDENTS_OCCURED FROM TrafficViolation
+GROUP BY Arrest_Type ORDER BY NO_OF_INCIDENTS_OCCURED DESC LIMIT 20;
+
+7) QUERY FOR LOCATION VALUES:
+
+select location_values.latval, location_values.longval from location_values where location_values.distance between 0 and 400;
+
+8)CREATE TABLE LOCATION_VALUES:
+
+create table location_values(Date_Of_Stop STRING,Time_of_Stop STRING,GENDER STRING,RACE STRING,latVal double,longVal double, YEAR STRING,TIME STRING,distance double);
+
+9)INSERT OVERWRITE QUERY:
+
+INSERT OVERWRITE TABLE location_values Select Date_Of_Stop,Time_of_Stop,GENDER,RACE,Lattitude,Longitude,SUBSTR(Date_Of_Stop,6,4),SUBSTR(Time_of_Stop,0,2),
+	2 * asin(
+    sqrt(
+      cos(radians(39.2196))*
+      cos(radians(Lattitude)) *
+      pow(sin(radians(-77.05772- Longitude)/2),2)
+          +
+      pow(sin(radians(39.2196- Lattitude)/2),2)
+
+    )) *3956	
+	from TrafficViolation;
+
+
+10) QUERY FOR VIOLATIONS AT DIFFERENT TIMES:
+
+Select TIME,COUNT(TIME) AS INCEDENTS_RECORDED FROM location_values GROUP BY TIME ORDER BY INCEDENTS_RECORDED DESC LIMIT 10;
+
+11)QUERY FOR VIOLATIONS IN A YEAR:
+
+Select YEAR,COUNT(YEAR) AS INCEDENTS_RECORDED FROM location_values GROUP BY YEAR ORDER BY INCEDENTS_RECORDED DESC LIMIT 10;
+
+12)QUERY FOR VIOLATIONS OF MEN:
+select location_values.distance as score, count(*) as occurences
+from (
+
+  select case  
+    when distance between 0 and 5 then ' 0- 5'
+    when distance between 5 and 10 then '5-10'
+	when distance between 10 and 15 then '10-15'
+	when distance between 15 and 20 then '15-20'
+	when distance between 20 and 25 then '20-25'
+	when distance between 25 and 30 then '25-30'
+	when distance between 30 and 35 then '30-35'
+	when distance between 35 and 40 then '35-40'
+	when distance between 40 and 50 then '40-50' 
+   else '>50'
+	end as distance
+  from location_values WHERE GENDER='M') location_values
+group by location_values.distance 
+order by occurences;
+
+13)QUERY FOR VIOLATIONS BY RACE:
+
+Select Race,COUNT(Race) AS NO_OF_INCIDENTS_OCCURED FROM TrafficViolation
+GROUP BY Race ORDER BY NO_OF_INCIDENTS_OCCURED DESC LIMIT 20;
+
+14)QUERY FOR VIOLATIONS BY NATIVE AMERICANS:
+
+select location_values.distance as score, count(*) as occurences
+from (
+
+  select case  
+    when distance between 0 and 5 then ' 0- 5'
+    when distance between 5 and 10 then '5-10'
+	when distance between 10 and 15 then '10-15'
+	when distance between 15 and 20 then '15-20'
+	when distance between 20 and 25 then '20-25'
+	when distance between 25 and 30 then '25-30'
+	when distance between 30 and 35 then '30-35'
+	when distance between 35 and 40 then '35-40'
+	when distance between 40 and 50 then '40-50' 
+   else '>50'
+	end as distance
+  from location_values WHERE RACE='NATIVE_AMERICAN') location_values
+group by location_values.distance 
+order by occurences;
+
+15)QUERY FOR VIOLATIONS IN THE YEAR 2015:
+
+select location_values.distance as score, count(*) as occurences
+from (
+  select case  
+    when distance between 0 and 5 then ' 0- 5'
+    when distance between 5 and 10 then '5-10'
+	when distance between 10 and 15 then '10-15'
+	when distance between 15 and 20 then '15-20'
+	when distance between 20 and 25 then '20-25'
+	when distance between 25 and 30 then '25-30'
+	when distance between 30 and 35 then '30-35'
+	when distance between 35 and 40 then '35-40'
+	when distance between 40 and 50 then '40-50' 
+   else '>50'
+	end as distance
+  from location_values WHERE YEAR='2015') location_values
+group by location_values.distance 
+order by occurences;
+
+16)QUERY FOR VIOLATIONS AT TIME 22:00:
+
+select location_values.distance as score, count(*) as occurences
+from (
+  select case  
+    when distance between 0 and 5 then ' 0- 5'
+    when distance between 5 and 10 then '5-10'
+	when distance between 10 and 15 then '10-15'
+	when distance between 15 and 20 then '15-20'
+	when distance between 20 and 25 then '20-25'
+	when distance between 25 and 30 then '25-30'
+	when distance between 30 and 35 then '30-35'
+	when distance between 35 and 40 then '35-40'
+	when distance between 40 and 50 then '40-50' 
+   else '>50'
+	end as distance
+  from location_values WHERE TIME='22') location_values
+group by location_values.distance 
+order by occurences;
+
+
+
+
+
+
+
